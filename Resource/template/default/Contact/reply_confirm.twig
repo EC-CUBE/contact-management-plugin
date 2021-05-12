@@ -1,0 +1,128 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% extends 'default_frame.twig' %}
+
+{% form_theme form 'Form/form_div_layout.twig' %}
+
+{% block stylesheet %}
+    <style>
+        .imgUpBox--thumbnail {
+            width: 170px; }
+        .imgUpBox--thumbnail img {
+            margin-top: 10px; }
+    </style>
+{% endblock stylesheet %}
+
+{% block main %}
+    <div class="ec-contactConfirmRole">
+        <div class="ec-pageHeader">
+            <h1>{{ 'front.contact.contact_reply'|trans }}</h1>
+        </div>
+        <div class="ec-off1Grid">
+            <div class="ec-off1Grid__cell">
+                <form method="post" action="{{ url('contact_reply', { hash_url: Contact.url }) }}" class="h-adr">
+                    {{ form_widget(form._token) }}
+                    <p>{{ 'front.contact.inquiry_notice'|trans|nl2br }}</p>
+                    <div class="ec-borderedDefs">
+                        <dl>
+                            <dt>
+                                {{ form_label(form.comment, 'front.contact.contact_reply_content', {'label_attr': {'class': 'ec-label'}}) }}
+                            </dt>
+                            <dd>
+                                {{ form.comment.vars.data|nl2br }}
+                                {{ form_widget(form.comment, { type : 'hidden' }) }}
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>
+                                <strong>{{ 'front.contact.contact_image_file'|trans }}</strong><br>
+                                <small>{{ 'front.contact.contact_image_file_description'|trans }}</small>
+                            </dt>
+                            <dd>
+                                {% set imageContactComment1 = form.image_name_1.vars.value ? form.image_name_1.vars.value : null %}
+                                {% set urlImageContactComment1 = null %}
+
+                                {% if imageContactComment1 %}
+                                    {% set urlImageContactComment1 = url('admin_contact_comment_get_image') ~ '?file_name=' ~ imageContactComment1 %}
+                                {% endif %}
+
+                                {% if imageContactComment1 %}
+                                    <div>
+                                        <p>
+                                            {{ imageContactComment1 }}
+                                        </p>
+                                        <div class="imgUpBox--thumbnail">
+                                            <img src="{{ urlImageContactComment1 }}">
+                                        </div>
+                                    </div>
+                                    {{ form_widget(form.image_name_1, { type : 'hidden' }) }}
+                                {% endif %}
+
+                                {% set imageContactComment2 = form.image_name_2.vars.value ? form.image_name_2.vars.value : null %}
+                                {% set urlImageContactComment2 = null %}
+
+                                {% if imageContactComment2 %}
+                                    {% set urlImageContactComment2 = url('admin_contact_comment_get_image') ~ '?file_name=' ~ imageContactComment2 %}
+                                {% endif %}
+
+                                {% if imageContactComment2 %}
+                                    <div>
+                                        <p>
+                                            {{ imageContactComment2 }}
+                                        </p>
+                                        <div class="imgUpBox--thumbnail">
+                                            <img src="{{ urlImageContactComment2 }}">
+                                        </div>
+                                    </div>
+                                    {{ form_widget(form.image_name_2, { type : 'hidden' }) }}
+                                {% endif %}
+                            </dd>
+                        </dl>
+                        {# エンティティ拡張の自動出力 #}
+                        {% for f in form if f.vars.eccube_form_options.auto_render %}
+                            {% if f.vars.eccube_form_options.form_theme %}
+                                {% form_theme f f.vars.eccube_form_options.form_theme %}
+                                {{ form_row(f) }}
+                            {% else %}
+                                <dl>
+                                    <dt>
+                                        {{ form_label(f) }}
+                                    </dt>
+                                    <dd>
+                                        <div class="{{ f.vars.eccube_form_options.style_class }}{{ has_errors(f) ? ' error' }}">
+                                            {{ f.vars.data }}
+                                            {{ form_widget(f, { type: 'hidden'}) }}
+                                        </div>
+                                    </dd>
+                                </dl>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="ec-RegisterRole__actions">
+                        <div class="ec-off4Grid">
+                            <div class="ec-off4Grid__cell">
+                                <button type="submit"
+                                        class="ec-blockBtn--action"
+                                        name="mode"
+                                        value="complete">{{ 'common.send'|trans }}
+                                </button>
+                                <button type="submit"
+                                        class="ec-blockBtn--cancel"
+                                        name="mode"
+                                        value="back">{{ 'common.back'|trans }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
