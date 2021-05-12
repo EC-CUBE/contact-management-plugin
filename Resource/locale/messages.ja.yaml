@@ -1,0 +1,94 @@
+#------------------------------------------------------------------------------------
+# 問い合わせ管理
+#------------------------------------------------------------------------------------
+admin.contact.contact_management: 問い合わせ管理
+admin.contact.contact_list: 問い合わせ一覧
+admin.contact.contact_registration: 問い合わせ登録
+admin.contact.contact_note_title: タイトル（管理者メモ）
+admin.contact.contact_multi_search_label: 問い合わせID・コメントID・コメント内容・お名前・メールアドレス・電話番号
+tooltip.contact.multi_search_label: 情報を入力して一覧の絞り込み検索ができます。より詳細な条件を指定するには［詳細検索］を開いてください。
+admin.contact.contact_status: 対応状況
+tooltip.contact.contact_search_status: 問い合わせの対応状況による絞り込み検索ができます。カッコ内は対応状況ごとの問い合わせ件数が表示されています。
+admin.contact.contact_replied: 返信状況
+admin.contact.replied: 返信済
+admin.contact.not_replying: 未返信
+admin.contact.contact_name: 問い合わせ者名
+admin.contact.contact_kana: 問い合わせ者名（カナ）
+admin.contact.contact_email: メールアドレス
+admin.contact.contact_phone_number: 電話番号
+admin.contact.contact_address: 住所
+admin.contact.contact_id: 問い合わせID
+admin.contact.contact_comment_id: コメントID
+admin.contact.charge_member: 担当メンバー
+admin.contact.all_select: 全ての担当者
+admin.contact.customer: 会員/非会員
+admin.contact.contact_customer: 会員
+admin.contact.contact_not_customer: 非会員
+admin.contact.contact_purpose: 問い合わせ種別
+admin.contact.contact_date: 問い合わせ日
+admin.contact.contact_date__start: 問い合わせ日(開始)
+admin.contact.contact_date__end: 問い合わせ日(終了)
+admin.contact.contact_comment_date: コメント日時
+admin.contact.comment_date__start: コメント日(開始)
+admin.contact.comment_date__end: コメント日(終了)
+admin.contact.update_date: 更新日
+admin.contact.send_member: 送信者
+admin.contact.shop_title: 【タイトル】
+admin.contact.shop_memo: 【ショップ用メモ】
+admin.contact.search_from_customer: 会員から検索
+admin.contact.comment_type: コメント種別
+admin.contact.comment_send_mail_type: メール送信
+admin.contact.comment_memo_registration_type: メモ登録
+admin.contact.charge_member.status: 対応メンバー/対応状況
+admin.contact.charge_member_me: 自分
+admin.contact.contact_information: 問い合わせ情報
+admin.contact.contact_full_name: 氏名（シメイ）
+admin.contact.contact_datetime: 問い合わせ日時
+admin.contact.contact_last_comment_datetime: 最終コメント日時
+admin.contact.contact_last_updated_member: 最終更新メンバー
+admin.contact.customer_information: 会員情報
+admin.contact.contact_customer_id: 会員ID
+admin.contact.contact_customer_purchase_price: 購入金額
+admin.contact.contact_customer_purchase_times: 購入回数
+admin.contact.contact_trading_history: 履歴
+admin.contact.function_customer_id: '{{ CustomerId }}'
+admin.contact.function_contact_name: '{{ ContactFullName }}'
+admin.contact.function_reply_url: '{{ replyUrl }}'
+admin.contact.function_latest_customer_comment: '{{ LatestCustomerComment }}'
+admin.contact.contact_reply_url: 返信用URL
+admin.contact.latest_customer_comment: お客様最新コメント
+admin.contact.contact_save_draft: 下書き保存
+admin.contact.contact_save: 保存
+admin.contact.contact_send: 送信
+admin.contact.shop_memos_inquiries: ショップ用メモ/問い合わせ内容
+admin.contact.contact_charge_member: 担当メンバー
+admin.contact.not_set: 未設定
+admin.contact.contact: 問い合わせ
+admin.contact.order: 注文
+admin.contact.mail_subject: 件名
+admin.contact.mail_default_subject: お問い合わせについて
+admin.contact.contact_template_select: テンプレートを選択
+admin.contact.contact_template: テンプレート編集
+admin.contact.send_complete: 送信しました。
+admin.contact.registration_complete: 登録しました。
+tooltip.contact.shop_memo: 店舗用のメモ欄です。フロント画面には表示されません。
+tooltip.contact.shop_title: 店舗用の問い合わせタイトルです。フロント画面には表示されません。
+admin.setting.contact.mail_template_name: テンプレート名
+admin.contact.comment_delete_modal__message: 'この操作はあとから取り消すことができません。問い合わせコメントID「%id%」のコメントを削除してよろしいですか？'
+#------------------------------------------------------------------------------------
+# 問い合わせ入力
+#------------------------------------------------------------------------------------
+admin.order.mail_reply_url_request: ▼メール本文の冒頭に返信用画面への誘導メッセージを設置してください。
+admin.order.mail_reply_url_description: 本メールへご回答いただく際には、以下のURLよりご返信いただくようにお願いします。
+#------------------------------------------------------------------------------------
+# 問い合わせ入力
+#------------------------------------------------------------------------------------
+front.contact.contact_reply: ご返信
+front.contact.contact_reply_content: ご返信内容
+front.contact.contact_purpose: お問い合わせ目的
+front.contact.contact_image_file: 添付ファイル
+front.contact.contact_image_file_description: .jpg/.jpeg/.pngデータのみ
+front.contact.contact_select_file: ファイル選択
+front.contact.contact_image_size: アップロードファイルのサイズが5MBを超えています。
+front.contact.contact_image_length: 1つの画像ファイルのみアップロード可能です。
+

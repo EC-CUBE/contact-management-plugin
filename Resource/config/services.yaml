@@ -1,0 +1,10 @@
+parameters:
+  eccube_ltextarea_len: 10000
+  eccube_contact_comment_image_dir: '%plugin_realdir%/ContactManagement/contact_comment'
+  eccube_temp_image_contact_comment_dir: '%plugin_realdir%/ContactManagement/contact_comment/temp_image'
+  eccube_image_contact_comment_dir: '%plugin_realdir%/ContactManagement/contact_comment/save_image'
+  eccube_contact_image_max_file_size: 5000000
+  eccube_contact_browse_request_interval: 60000
+  eccube_contact_management_mail_template_name: 問い合わせ受付メール（問い合わせ管理プラグイン用）
+  eccube_contact_comment_send_mail_type: 1
+  eccube_contact_comment_memo_registration_type: 0
