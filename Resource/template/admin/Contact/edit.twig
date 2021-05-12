@@ -1,0 +1,982 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['contact', 'contact_new'] %}
+
+{% block title %}{{ 'admin.contact.contact_registration'|trans }}{% endblock %}
+{% block sub_title %}{{ 'admin.contact.contact_management'|trans }}{% endblock %}
+
+{% form_theme form '@admin/Form/bootstrap_4_horizontal_layout.html.twig' %}
+{% form_theme searchCustomerModalForm '@admin/Form/bootstrap_4_horizontal_layout.html.twig' %}
+
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="{{ asset('assets/css/fileupload/jquery.fileupload.css', 'admin') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/fileupload/jquery.fileupload-ui.css', 'admin') }}">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <style>
+        @media (min-width: 576px) {
+            .comment-modal-content,
+            .expanded-comment-image {
+                max-width: 450px;
+                max-height: 450px;
+            }
+        }
+        @media (min-width: 992px) {
+            .comment-modal-content,
+            .expanded-comment-image {
+                max-width: 650px;
+                max-height: 650px;
+            }
+        }
+        .comment-modal-content {
+            position: relative;
+            display: -ms-flexbox;
+            display: flex;
+            width: 100%;
+            pointer-events: auto;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 0.3rem;
+            outline: 0;
+        }
+        .contact-comment-img {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            width:170px;
+            height:170px;
+            display:inline-block;
+        }
+        .check-inline-custom .form-check{
+            display: -ms-inline-flexbox;
+            display: inline-flex;
+            -ms-flex-align: center;
+            align-items: center;
+            padding-left: 0;
+            margin-right: 12px;
+            margin-right: 0.75rem;
+            margin-left: 18px;
+        }
+        .chat-talk {
+            overflow: hidden;
+            margin: 0 0 1em 0;
+            padding: 0;
+        }
+        .chat-talk .talk-content {
+            position: relative;
+            box-sizing: border-box;
+            width: auto;
+            min-height: 50px;
+            border-radius: 10px;
+            background-color: #FFFFFF;
+            margin: 0 auto 0 10px;
+            padding: 1em;
+            width: 80%;
+        }
+        .chat-talk .talk-content:before {
+            position: absolute;
+            top: 15px;
+            left: -20px;
+            display: block;
+            width: 0;
+            height: 0;
+            content: '';
+            border: 10px solid transparent;
+            border-right-color: #FFFFFF;
+        }
+        .chat-talk.mytalk .talk-content {
+            margin: 0 10px 0 auto;
+            background: #DCF4BD;
+        }
+        .chat-talk.mytalk .talk-content:before {
+            right: -20px;
+            left: auto;
+            border-color: transparent;
+            border-left-color: #DCF4BD;
+        }
+        .chat-talk.memotalk .talk-content:before {
+            display: none;
+        }
+        .chat-talk.memotalk .talk-content {
+            margin: 0 auto;
+            background: #bdf4f3;
+        }
+        .chat-header {
+            clear: both;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            display: flex;
+            justify-content: space-between;
+        }
+        .chat-comment {
+            margin-top: 0.5rem;
+        }
+        .modal-anotherBrowse {
+            background-color: #eff0f4;
+        }
+        .modal-anotherBrowse-comment {
+            line-height: 2.0;
+            color: red;
+            margin: 4rem 3rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        .modal-confirm {
+            background-color: #D3D3D3;
+        }
+        .button-wrap {
+            margin: 0 auto 4rem;
+        }
+    </style>
+{% endblock stylesheet %}
+
+{% block javascript %}
+    <script src="{{ asset('assets/js/vendor/fileupload/vendor/jquery.ui.widget.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.iframe-transport.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload-process.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload-validate.js', 'admin') }}"></script>
+    <script>var bootstrapTooltip = $.fn.tooltip.noConflict();</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        $(function(){
+            {% if id and LoginedMemberId %}
+                $.ajax({
+                    url: '{{ url('admin_contact_another_browsing') }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'id': {{ id }},
+                        'memberId' : {{ LoginedMemberId }}
+                    }
+                }).done(function (data) {
+                    if (data) {
+                        $('#anotherBrowse').modal();
+                    }
+                    $.ajax({
+                        url: '{{ url('admin_contact_browsing_record') }}',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            'id': {{ id }},
+                            'memberId' : {{ LoginedMemberId }}
+                    }
+                    }).done(function (data) {
+                    }).fail(function (data) {
+                    });
+                }).fail(function (data) {
+                });
+
+                // 1分間に1度リクエスト
+                setInterval(function(){
+                    $.ajax({
+                    url: '{{ url('admin_contact_browsing_record') }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'id': {{ id }},
+                        'memberId' : {{ LoginedMemberId }}
+                    }
+                }).done(function (data) {
+                }).fail(function (data) {
+                });
+                }, {{ eccube_config.eccube_contact_browse_request_interval }});
+            {% endif %}
+        });
+
+        $.fn.tooltip = bootstrapTooltip;
+        $(document).on('drop dragover', function(e) {
+            e.preventDefault();
+        });
+
+        $(".contact-comment-img").on('click', function() {
+            var backGroundImage = $(this).css('background-image');
+            $('.expanded-comment-image').css('background-image', backGroundImage);
+            $('#commentImageBrowse').modal();
+        });
+
+        if($('#contact_ContactComment_comment_type_0').prop('checked')) {
+            selectSendMail();
+        } else {
+            selectMemoRegistration();
+        }
+
+        $('.comment-type-form input[type="radio"]').change(function() {
+            if($('#contact_ContactComment_comment_type_0').prop('checked')) {
+                selectSendMail();
+            } else {
+                selectMemoRegistration();
+            }
+        });
+
+        function selectSendMail() {
+            $('.memo-registration-form').css('display','none');
+            $('.send-mail-form').css('display','');
+        }
+
+        function selectMemoRegistration() {
+            $('.send-mail-form').css('display','none');
+            $('.memo-registration-form').css('display','');
+        }
+
+        // 会員検索
+        $('#searchCustomerModalButton').on('click', function() {
+            var list = $('#searchCustomerModalList');
+            list.children().remove();
+
+            $.ajax({
+                url: '{{ url('admin_contact_search_customer_html') }}',
+                type: 'POST',
+                dataType: 'html',
+                data: {'search_word': $('#admin_search_customer_multi').val()}
+            }).done(function(data) {
+                $('#searchCustomerModalList').html(data);
+            }).fail(function(data) {
+                alert('search customer failed.');
+            });
+        });
+
+        $('#contact_contact_template').on('change', function() {
+            var template = $('#contact_contact_template option:selected').val();
+            if (template) {
+                $.ajax({
+                    url: '{{ url('admin_contact_search_mail_template_by_id') }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'id': $(this).val()}
+                }).done(function(data) {
+                    {% if haveExistingSubject %}
+                        $('#contact_ContactComment_comment').val(data['comment']);
+                    {% else %}
+                        $('#contact_ContactComment_subject').val(data['subject']);
+                        $('#contact_ContactComment_comment').val(data['comment']);
+                    {% endif %}
+                }).fail(function(data) {
+                    alert('{{ 'common.ajax_error'|trans }}');
+                });
+            } else {
+                $('#contact_ContactComment_subject').val('');
+                $('#contact_ContactComment_comment').val('');
+            }
+        });
+
+        $("#charge_member_me").click( function(){
+            $("#contact_charge_member").val({{ LoginedMemberId }});
+        });
+
+        // 削除モーダルのhrefとmessageの変更
+        $('#DeleteModal').on('shown.bs.modal', function(event) {
+            var target = $(event.relatedTarget);
+            // hrefの変更
+            $(this).find('[data-method="delete"]').attr('href', target.data('url'));
+
+            // messageの変更
+            $(this).find('p.modal-message').text(target.data('message'));
+        });
+
+        $(window).on('load', function() {
+            var id = location.hash;
+            var speed = 0;
+            var headerHeight = 60; // 固定ヘッダーの高さ
+            if (id != '') {
+            var pos = $(id).offset().top - headerHeight;
+            $('html').animate({ scrollTop: pos }, speed );
+            }
+        });
+
+        var count_del = 0;
+
+       {% if form.ContactComment.image_name_1.vars.value is not empty %}
+            $('#thumb_contact_comment_1').replaceWith('<div class="c-form__fileUploadThumbnail" id="thumb_contact_comment_1">' +
+            '<a class="delete-image contact_comment_1"><i class="fa fa-times" aria-hidden="true"></i></a>' +
+            '</div>');
+            var path = 'url("' + "{{ url('admin_contact_comment_get_image') }}?file_name=" + "{{ form.ContactComment.image_name_1.vars.value }}" + '")';
+            $('#thumb_contact_comment_1').css('background-image', path);
+        {% endif %}
+
+        {% if form.ContactComment.image_name_2.vars.value is not empty %}
+            $('#thumb_contact_comment_2').replaceWith('<div class="c-form__fileUploadThumbnail" id="thumb_contact_comment_2">' +
+            '<a class="delete-image "><i class="fa fa-times" aria-hidden="true"></i></a>' +
+            '</div>');
+            var path = 'url("' + "{{ url('admin_contact_comment_get_image') }}?file_name=" + "{{ form.ContactComment.image_name_2.vars.value }}" + '")';
+            $('#thumb_contact_comment_2').css('background-image', path);
+        {% endif %}
+
+        var proto_del = '{{ form_widget(form.ContactComment.delete_images.vars.prototype) }}';
+        {% for delete_image in form.ContactComment.delete_images %}
+            $(".image-upload-form").append('{{ form_widget(delete_image) }}');
+        {% endfor %}
+
+        $(document).ready(function(){
+
+            $('#{{ form.ContactComment.image_file_upload_1.vars.id }}').fileupload(getUploadProcess(
+                'contact_comment_1',
+                '{{ form.ContactComment.image_name_1.vars.id }}',
+            ));
+            $('#{{ form.ContactComment.image_file_upload_2.vars.id }}').fileupload(getUploadProcess(
+                'contact_comment_2',
+                '{{ form.ContactComment.image_name_2.vars.id }}',
+            ));
+
+            $(".imgUpBox--main").on("click", '.delete-image', function() {
+                var thumbnail = $(this).parents('div.c-form__fileUploadThumbnail');
+                $(thumbnail).removeClass('c-form__fileUploadThumbnail');
+                $(thumbnail).css('background-image','');
+                $(thumbnail).children().remove();
+
+                var imageNameForm =  $(thumbnail).parent().nextAll('input[type="hidden"]');
+                var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+                $new_delete_image.val($(imageNameForm).val());
+                $('.image-upload-form').append($new_delete_image);
+                $(imageNameForm).val('');
+            });
+        });
+
+        function getUploadProcess(key, valueId) {
+            return {
+                url: "{{ url('admin_contact_image_add') }}",
+                type: "post",
+                sequentialUploads: true,
+                dataType: 'json',
+                singleFileUploads: true,
+                add: function (e, data) {
+                    // Ignore drag & drop
+                    if (e.delegatedEvent.type == 'drop') {
+                        return ;
+                    }
+
+                    if (data.files.length > 1) {
+                        alert("{{ 'front.contact.contact_image_length'|trans }}");
+                        return;
+                    } else {
+                        if (data.files[0].size > {{ eccube_config.eccube_contact_image_max_file_size }}) {
+                            alert("{{ 'front.contact.contact_image_size'|trans }}");
+                            return;
+                        }
+                        data.submit();
+                    }
+                },
+                done: function(e, data) {
+                    var file = data.result.files;
+                    var path = 'url("' + "{{ url('admin_contact_comment_get_image') }}?file_name=" + file + '")';
+
+                    $('#thumb_' + key).replaceWith('<div class="c-form__fileUploadThumbnail" id="thumb_' + key + '">' +
+                    '<a class="delete-image ' + key + '"><i class="fa fa-times" aria-hidden="true"></i></a>' +
+                    '</div>');
+                    $('#thumb_' + key).css('background-image', path);
+                    if ($('#'+valueId).val() && $('#'+valueId).val().length > 0) {
+                        var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+                        $new_delete_image.val($('#'+valueId).val())
+                        $('.image-upload-form').append($new_delete_image);
+                        count_del++
+                    }
+
+                    $('#'+valueId).val(file);
+                },
+                fail: function(e, data) {
+                    alert("{{ 'admin.common.upload_error'|trans }}");
+                },
+                acceptFileTypes: /(\.|\/)(jpe?g|png)$/i,
+                maxFileSize: {{ eccube_config.eccube_contact_image_max_file_size }},
+                maxNumberOfFiles: 1,
+                processalways: function(e, data) {
+                    if (data.files.error) {
+                        alert("{{ 'admin.common.upload_error'|trans }}");
+                    }
+                }
+            }
+        }
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+{#    他者閲覧確認モーダル#}
+    <div class="modal fade" id="anotherBrowse" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content modal-anotherBrowse">
+                <p class="modal-anotherBrowse-comment">
+                    現在 {{ Contact.BrowseMember }} さんがこの問い合わせを操作中の可能性があります。<br>
+                    「保存」されますと、内容が上書きされますので、ご注意ください。
+                </p>
+                <div class="button-wrap">
+                    <button type="button" class="btn-lg modal-confirm" data-dismiss="modal">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{#    お問い合わせ画像拡大モーダル#}
+    <div class="modal fade" id="commentImageBrowse" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="comment-modal-content">
+                <div class="expanded-comment-image" style="background-size: contain; background-repeat: no-repeat; background-position: center; width:650px; height:650px;"></div>
+            </div>
+        </div>
+    </div>
+{#    削除モーダル#}
+    <div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog"
+         aria-labelledby="DeleteModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-bold">
+                        {{ 'admin.common.delete_modal__title'|trans }}
+                    </h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body text-left">
+                    <p class="text-left modal-message"><!-- jsでメッセージを挿入 --></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ec-sub" type="button" data-dismiss="modal">
+                        {{ 'admin.common.cancel'|trans }}
+                    </button>
+                    <a class="btn btn-ec-delete" href="#" {{ csrf_token_for_anchor() }}
+                       data-method="delete" data-confirm="false">
+                        {{ 'admin.common.delete'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form role="form" name="form1" id="form1" method="post" action="{{ Contact.id ? url('admin_contact_contact_edit', { id: Contact.id } ) : url('admin_contact_contact_new') }}" novalidate enctype="multipart/form-data">
+        {{ form_widget(form._token) }}
+        {{ form_widget(form.return_link) }}
+        <div class="c-contentsArea__cols">
+            <div class="c-contentsArea__primaryCol">
+                <div class="c-primaryCol">
+                    <div class="card rounded border-0 mb-4">
+                        <div class="collapse show ec-cardCollapse" id="basicConfig">
+                            <div class="card-body">
+                                {% if Contact.ContactPurpose %}
+                                    {{ 'admin.contact.contact_purpose'|trans }} : [ {{ Contact.ContactPurpose }} ]
+                                {% endif %}
+                                <div class="row mb-3">
+                                    <div class="ml-1 pt-1">
+                                        <div class="d-inline-block align-middle" data-tooltip="true" data-placement="top"
+                                             title="{{ 'tooltip.contact.shop_title'|trans }}">
+                                        <span class="card-title">
+                                            <i class="fa fa-question-circle fa-lg"></i>
+                                        </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-8 mb-3 pl-1">
+                                        {{ form_widget(form.note_title, { 'attr' : { 'placeholder' : 'admin.contact.contact_note_title'}}) }}
+                                        {{ form_errors(form.note_title) }}
+                                    </div>
+                                    <div class="col">
+                                        <span class="align-middle">
+                                            {% if Contact.id %}
+                                                {{ 'admin.contact.contact_id'|trans }}  : [ {{ Contact.id }} ]
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% if Contact.id is empty %}
+                                    <div class="row mb-3">
+                                        <div class="col-auto">
+                                            <a class="btn btn-ec-regular px-3" data-toggle="modal" data-target="#searchCustomerModal">{{ 'admin.contact.search_from_customer'|trans }}</a>
+                                        </div>
+                                        <label class="col-3 col-form-label" data-tooltip="true" data-placement="top" title="{{ 'tooltip.order.customer_id'|trans }}">{{ 'admin.customer.customer_id'|trans }}<i class="fa fa-question-circle fa-lg ml-1"></i></label>
+                                        <p class="col-form-label" id="contact_CustomerId">{% if form.Customer.vars.value is empty %}{{ 'admin.order.non_member'|trans }}{% else %}<a href="{{ url('admin_customer_edit', {'id': form.Customer.vars.value}) }}">{{ form.Customer.vars.value }}</a>{% endif %}</p>
+                                        {{ form_widget(form.Customer) }}
+                                        {{ form_errors(form.Customer) }}
+                                    </div>
+                                    <!-- 会員検索モーダル -->
+                                    <div class="modal fade" id="searchCustomerModal" tabindex="-1" role="dialog" aria-labelledby="searchCustomerModal" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title font-weight-bold">{{ 'admin.order.search_customer_title'|trans }}</h5>
+                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    {{ form_widget(searchCustomerModalForm.multi, { attr : {'class': 'mb-2searchCustomerModal', placeholder : 'admin.customer.multi_search_label' }}) }}
+                                                    <button type="button" id="searchCustomerModalButton" class="btn btn-ec-conversion px-5 mb-4 mt-2">{{ 'admin.common.search'|trans }}</button>
+                                                    <div class="form-group" id="searchCustomerModalList"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        <label class="col-5 col-form-label">{{ 'admin.common.name'|trans }}<span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span></label>
+                                        <div class="col">
+                                            <div class="row">
+                                                <div class="col">
+                                                    {{ form_widget(form.name.name01) }}
+                                                    {{ form_errors(form.name.name01) }}
+                                                </div>
+                                                <div class="col">
+                                                    {{ form_widget(form.name.name02) }}
+                                                    {{ form_errors(form.name.name02) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        <label class="col-5 col-form-label">{{ 'admin.common.kana'|trans }}</label>
+                                        <div class="col">
+                                            <div class="row">
+                                                <div class="col">
+                                                    {{ form_widget(form.kana.kana01) }}
+                                                    {{ form_errors(form.kana.kana01) }}
+                                                </div>
+                                                <div class="col">
+                                                    {{ form_widget(form.kana.kana02) }}
+                                                    {{ form_errors(form.kana.kana02) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        <label class="col-5 col-form-label">{{ 'admin.common.mail_address'|trans }}<span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span></label>
+                                        <div class="col">
+                                            {{ form_widget(form.email) }}
+                                            {{ form_errors(form.email) }}
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        <label class="col-5 col-form-label">{{ 'admin.common.phone_number'|trans }}</label>
+                                        <div class="col">
+                                            {{ form_widget(form.phone_number) }}
+                                            {{ form_errors(form.phone_number) }}
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        <label class="col-5 col-form-label">{{ 'admin.contact.contact_purpose'|trans }}<span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span></label>
+                                        <div class="col">
+                                            {{ form_widget(form.contact_purpose) }}
+                                            {{ form_errors(form.contact_purpose) }}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    {{ form_widget(form.Customer, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.name.name01, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.name.name02, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.kana.kana01, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.kana.kana02, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.email, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.phone_number, { 'type': 'hidden' }) }}
+                                    {{ form_widget(form.contact_purpose, { 'type': 'hidden' }) }}
+                                {% endif %}
+                                <div class="row form-group">
+                                    <div class="col-5">
+                                        <span>{{ 'コメント種別'|trans }}</span>
+                                        <span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span>
+                                    </div>
+                                    <div class="col mb-2 comment-type-form">
+                                        {{ form_widget(form.ContactComment.comment_type, {'attr': {'class': 'form-check-inline'}}) }}
+                                        {{ form_errors(form.ContactComment.comment_type) }}
+                                    </div>
+                                </div>
+                                <div class="row mb-3 col-9 send-mail-form">
+                                    {{ form_widget(form.contact_template) }}
+                                </div>
+                                <div class="row mb-3 col-9 send-mail-form">
+                                    {% if haveExistingSubject %}
+                                        {{ form.ContactComment.subject.vars.data}}
+                                        {{ form_widget(form.ContactComment.subject, { type : 'hidden' }) }}
+                                    {% else %}
+                                        {{ form_widget(form.ContactComment.subject, { 'attr': { 'placeholder': 'admin.contact.mail_subject'}}) }}
+                                        {{ form_errors(form.ContactComment.subject) }}
+                                    {% endif %}
+                                </div>
+                                <div class="row col-12 send-mail-form">
+                                    {{ form_widget(form.ContactComment.comment, { 'attr' : { 'rows' : "17"} }) }}
+                                    {{ form_errors(form.ContactComment.comment) }}
+                                </div>
+                                <div class="row col-12 memo-registration-form">
+                                    {{ form_widget(form.ContactComment.memo_comment, { 'attr' : { 'rows' : "17"}}) }}
+                                    {{ form_errors(form.ContactComment.memo_comment) }}
+                                </div>
+                                <div class="row col-12 mt-2 send-mail-form image-upload-form">
+                                    <div class="imgUpBox">
+                                        <div class="imgUpBox--main">
+                                            <div id="thumb_contact_comment_1"></div>
+                                            {{ form_widget(form.ContactComment.image_file_upload_1, { attr : { accept : 'image/*', style: 'display:none'} }) }}
+                                        </div>
+                                        <a class="btn btn-ec-regular mr-2 display-block" onclick="$('#{{ form.ContactComment.image_file_upload_1.vars.id }}').click()">{{ 'front.contact.contact_select_file'|trans }}</a>
+                                        {{ form_widget(form.ContactComment.image_name_1) }}
+                                        {{ form_errors(form.ContactComment.image_file_upload_1) }}
+                                        {{ form_errors(form.ContactComment.image_name_1) }}
+                                    </div>
+                                    <div class="imgUpBox mt30 mt15sp">
+                                        <div class="imgUpBox--main">
+                                            <div id="thumb_contact_comment_2"></div>
+                                            {{ form_widget(form.ContactComment.image_file_upload_2, { attr : { accept : 'image/*', style: 'display:none'} }) }}
+                                        </div>
+                                        <a class="btn btn-ec-regular mr-2 display-block " onclick="$('#{{ form.ContactComment.image_file_upload_2.vars.id }}').click()">{{ 'front.contact.contact_select_file'|trans }}</a>
+                                        {{ form_widget(form.ContactComment.image_name_2) }}
+                                        {{ form_errors(form.ContactComment.image_file_upload_2) }}
+                                        {{ form_errors(form.ContactComment.image_name_2) }}
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <p>{% if Contact.Customer %} {{ 'admin.contact.contact_customer_id'|trans }} : {{ 'admin.contact.function_customer_id'|trans }} <br> {% endif %}
+                                            {{ 'admin.contact.contact_name'|trans }} : {{ 'admin.contact.function_contact_name'|trans }} <br>
+                                            {{ 'admin.contact.contact_reply_url'|trans }} : {{ 'admin.contact.function_reply_url'|trans }} <br>
+                                            {{ 'admin.contact.latest_customer_comment'|trans }} : {{ 'admin.contact.function_latest_customer_comment'|trans }}</p>
+                                    </div>
+                                    <div class="col-6 text-right text-nowrap">
+                                        <button type="submit" class="btn btn-light px-4 mr-3 send-mail-form" name="mode" value="saveDraft">{{ 'admin.contact.contact_save_draft'|trans }}</button>
+                                        <button type="submit" class="btn btn-danger px-5 send-mail-form" name="mode" value="send">{{ 'admin.contact.contact_send'|trans }}</button>
+                                        <button type="submit" class="btn btn-ec-conversion px-5 memo-registration-form" name="mode" value="memo">{{ 'admin.common.registration'|trans }}</button>
+                                    </div>
+                                </div>
+                                {# エンティティ拡張の自動出力 #}
+                                {% for f in form if f.vars.eccube_form_options.auto_render %}
+                                    {% if f.vars.eccube_form_options.form_theme %}
+                                        {% form_theme f f.vars.eccube_form_options.form_theme %}
+                                        {{ form_row(f) }}
+                                    {% else %}
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <span>{{ f.vars.label|trans }}</span>
+                                            </div>
+                                            <div class="col mb-2">
+                                                <div>
+                                                    {{ form_widget(f) }}
+                                                    {{ form_errors(f) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% for ContactComment in Contact.ContactComments %}
+                    {% if ContactComment.send %}
+                        {% if ContactComment.Member %}
+                            <div class="chat-talk mytalk" id="comment-{{ ContactComment.id }}">
+                                <div class="talk-content">
+                                    <div class="chat-header"> {{ContactComment.update_date|date_min}} {{ BaseInfo.ShopName }} {{ContactComment.Member.name}} ({{ContactComment.id}}) </div>
+                                    <div class="chat-comment"> {{ContactComment.comment|nl2br}} </div>
+                                    {% if ContactComment.ContactCommentImages %}
+                                        {% for ContactCommentImage in ContactComment.ContactCommentImages %}
+                                            <div class="mr-3 mt-2 contact-comment-img" style="background-image:url('{{ url('admin_contact_comment_image') }}?file_name={{ ContactCommentImage.fileName }}'); display:inline-block; cursor:pointer;"></div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="chat-talk" id="comment-{{ ContactComment.id }}">
+                                <div class="talk-content">
+                                    <div class="chat-header"> {{ContactComment.update_date|date_min}} {{ Contact.name01 ~ Contact.name02 }} 様 ({{ContactComment.id}})</div>
+                                    <div class="chat-comment"> {{ContactComment.comment|nl2br}} </div>
+                                    {% if ContactComment.ContactCommentImages %}
+                                        {% for ContactCommentImage in ContactComment.ContactCommentImages %}
+                                            <div class="mr-3 mt-2 contact-comment-img" style="background-image:url('{{ url('admin_contact_comment_image') }}?file_name={{ ContactCommentImage.fileName }}'); display:inline-block; cursor:pointer;"></div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    {% if ContactComment.memo %}
+                        <div class="chat-talk memotalk" id="comment-{{ ContactComment.id }}">
+                            <div class="talk-content">
+                                <div class="chat-header">
+                                    <div class="d-inline-block">
+                                        {{ContactComment.update_date|date_min}} {{ BaseInfo.ShopName }} {{ContactComment.Member.name}} ({{ContactComment.id}})
+                                    </div>
+                                    <div class="d-inline-block text-right" data-tooltip="true"
+                                         data-placement="top" title="{{ 'admin.common.delete'|trans }}">
+                                        <a class="btn btn-ec-actionIcon p-0" data-toggle="modal" data-target="#DeleteModal"
+                                           data-url="{{ url('admin_contact_comment_delete', {'id' : ContactComment.id}) }}"
+                                           data-message="{{ 'admin.contact.comment_delete_modal__message'|trans({ "%id%" : ContactComment.id }) }}">
+                                            <i class="fa fa-close fa-lg text-secondary"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="chat-comment"> {{ContactComment.comment|nl2br}} </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {# ここから右にブロックがづれる #}
+            <div class="c-contentsArea__secondaryCol">
+                <div class="c-secondaryCol">
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <span class="card-title">{{ 'admin.contact.charge_member.status'|trans }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-8">
+                                    {{ form_widget(form.charge_member) }}
+                                </div>
+                                <div class="col">
+                                    <button type="button" class="btn btn-light" id="charge_member_me">{{ 'admin.contact.charge_member_me'|trans }}</button>
+                                </div>
+                            </div>
+                            {% if Contact.id %}
+                                <div class="row mb-2">
+                                    <div class="col-8">
+                                        {{ form_widget(form.ContactStatus) }}
+                                    </div>
+                                </div>
+                            {% else %}
+                                {{ form_widget(form.ContactStatus,{ type : 'hidden' }) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if Contact.id %}
+                        <div class="card rounded border-0 mb-4">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <span class="card-title">{{ 'admin.contact.contact_information'|trans }}</span>
+                                    </div>
+                                    <div class="col-4 text-right">
+                                        <a data-toggle="collapse" href="#contactInformation" aria-expanded="false"
+                                        aria-controls="contactInformation">
+                                            <i class="fa fa-angle-up fa-lg"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="collapse show ec-cardCollapse" id="contactInformation">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_full_name'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {{ Contact.name01 ~ Contact.name02 }}
+                                            {% if Contact.kana01 or Contact.kana02 %}
+                                                <br>({{Contact.kana01 ~ Contact.kana02}})
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_email'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {{ Contact.email }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_phone_number'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {% if Contact.phone_number %}
+                                                {{ Contact.phone_number }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_address'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {% if Contact.postal_code %}〒{{ Contact.postal_code }}{% endif %}
+                                            {% if Contact.Pref %}{{ Contact.Pref }}{% endif %}
+                                            {% if Contact.addr01 %}{{ Contact.addr01 }}{% endif %}
+                                            {% if Contact.addr02 %}{{ Contact.addr02 }}{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_datetime'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {{ Contact.create_date|date_min }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_last_comment_datetime'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {% set lastCommentDate = getLastCommentDate(Contact) %}
+                                            {{ lastCommentDate|date_min }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_last_updated_member'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {{ Contact.UpdateMember }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if Contact.Customer or SearchedCustomer %}
+                        <div class="card rounded border-0 mb-4">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <span class="card-title">{{ 'admin.contact.customer_information'|trans }}</span>
+                                    </div>
+                                    <div class="col-4 text-right">
+                                        <a data-toggle="collapse" href="#customerInformation" aria-expanded="false"
+                                        aria-controls="customerInformation">
+                                            <i class="fa fa-angle-up fa-lg"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="collapse show ec-cardCollapse" id="customerInformation">
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_customer_id'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {% if Contact.Customer %}
+                                                <a href="{{ url('admin_customer_edit', { id : Contact.Customer.id }) }}" target="_blank">{{ Contact.Customer.id }}</a>
+                                            {% else %}
+                                                <a href="{{ url('admin_customer_edit', { id : SearchedCustomer.id }) }}" target="_blank">{{ SearchedCustomer.id }}</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_customer_purchase_price'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {% if Contact.Customer %}
+                                                {{ Contact.Customer.buy_total|price }}
+                                            {% else %}
+                                                {{ SearchedCustomer.buy_total|price }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 pr-0">
+                                            <span>{{ 'admin.contact.contact_customer_purchase_times'|trans }}</span>
+                                        </div>
+                                        <span>:</span>
+                                        <div class="col-6">
+                                            {% if Contact.Customer %}
+                                                {{ Contact.Customer.buy_times }}
+                                            {% else %}
+                                                {{ SearchedCustomer.buy_times }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                         title="{{ 'tooltip.contact.shop_memo'|trans }}">
+                                        <span class="card-title">
+                                            {{ 'admin.common.shop_memo'|trans }}
+                                            <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#shopMemo" aria-expanded="false"
+                                       aria-controls="shopMemo">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse" id="shopMemo">
+                            <div class="card-body">
+                                {{ form_widget(form.note, { attr : { rows : "8", style : "color: #FF0000"} }) }}
+                                {{ form_errors(form.note) }}
+                            </div>
+                        </div>
+                    </div>
+                    {% if Contact.id %}
+                        <div class="card rounded border-0 mb-4">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <span class="card-title">{{ 'admin.contact.contact_trading_history'|trans }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    {% if tradingHistories %}
+                                        {% for tradingHistory in tradingHistories %}
+                                            {% if tradingHistory.className == 'Contact' %}
+                                                    <div class="col-4">
+                                                        <span> {{ tradingHistory.update_date|date('Y/m/d') }} </span>
+                                                    </div>
+                                                    <div class="col-7">
+                                                        <span>: {{ 'admin.contact.contact'|trans }}(<a href="{{ url('admin_contact_contact_edit', { id : tradingHistory.id }) }}" target="_blank">{{ tradingHistory.id }}</a>)</span>
+                                                    </div>
+                                            {% elseif tradingHistory.className == 'Order' %}
+                                                    <div class="col-4">
+                                                        <span> {{ tradingHistory.update_date|date('Y/m/d') }} </span>
+                                                    </div>
+                                                    <div class="col-7">
+                                                        <span>: {{ 'admin.contact.order'|trans }}(<a href="{{ url('admin_order_edit', { id : tradingHistory.id }) }}" target="_blank">{{ tradingHistory.id }}</a>)</span>
+                                                    </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="c-conversionArea">
+            <div class="c-conversionArea__container">
+                <div class="row justify-content-between align-items-center">
+                    <div class="col-6">
+                        <div class="c-conversionArea__leftBlockItem">
+                            <a class="c-baseLink" href="{{ path('admin_contact_page', { page_no : app.session.get('eccube.admin.contact.search.page_no')|default('1') } ) }}">
+                                <i class="fa fa-backward" aria-hidden="true">
+                                </i><span>{{ 'admin.contact.contact_list'|trans }}</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div id="ex-conversion-action" class="row align-items-center justify-content-end">
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-ec-conversion px-5 send-mail-form" name="mode" value="saveDraft">{{ 'admin.contact.contact_save'|trans }}</button>
+                                <button type="submit" class="btn btn-ec-conversion px-5 memo-registration-form" name="mode" value="memo">{{ 'admin.contact.contact_save'|trans }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
