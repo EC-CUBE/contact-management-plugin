@@ -1,0 +1,137 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['contact', 'contact_mail'] %}
+
+{% block title %}{{ 'admin.contact.contact_template'|trans }}{% endblock %}
+{% block sub_title %}{{ 'admin.contact.contact_management'|trans }}{% endblock %}
+
+{% form_theme form '@admin/Form/bootstrap_4_horizontal_layout.html.twig' %}
+
+{% block javascript %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ext-language_tools.js"></script>
+    <script>
+        $(function() {
+            $('#contact_mail_template').on('change', function() {
+                var id = $(this).val()
+                if (id) {
+                    location.href = '{{ url('admin_contact_mail') }}/' + id;
+                } else {
+                    location.href = '{{ url('admin_contact_mail') }}';
+                }
+            });
+        });
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    <form name="form1" role="form" class="form-horizontal" id="form1" method="post" action="">
+        {{ form_widget(form._token) }}
+        <div class="c-contentsArea__cols">
+            <div class="c-contentsArea__primaryCol">
+                <div class="c-primaryCol">
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header"><span class="card-title">{{ 'admin.setting.shop.mail.mail_template_edit'|trans }}</span></div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-2">
+                                    <div class="d-inline-block" data-tooltip="true" data-placement="top" title="{{ 'tooltip.setting.shop.mail.mail_template'|trans }}">
+                                        <span>{{ 'admin.setting.shop.mail.mail_template'|trans }}</span><i class="fa fa-question-circle fa-lg ml-1"></i>
+                                    </div>
+                                </div>
+                                <div class="col-10">
+                                    {{ form_widget(form.template) }}
+                                    {{ form_errors(form.template) }}
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-2"><span>{{ 'admin.setting.contact.mail_template_name'|trans }}</span><span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span></div>
+                                <div class="col-10">
+                                    {{ form_widget(form.name) }}
+                                    {{ form_errors(form.name) }}
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-2"><span>{{ 'admin.setting.shop.mail.mail_subject'|trans }}</span><span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span></div>
+                                <div class="col-10">
+                                    {{ form_widget(form.mail_subject) }}
+                                    {{ form_errors(form.mail_subject) }}
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-2"><span>{{ 'admin.setting.shop.mail.mail_body'|trans }}</span><span class="badge badge-primary ml-1">{{ 'admin.common.required'|trans }}</span></div>
+                                <div class="col-10">
+                                    <div class="tab-content">
+                                        {{ form_widget(form.tpl_data, { attr : { rows : "20"} }) }}
+                                        {{ form_errors(form.tpl_data) }}
+                                    </div>
+                                </div>
+                            </div>
+                            {# エンティティ拡張の自動出力 #}
+                            {% for f in form if f.vars.eccube_form_options.auto_render %}
+                                {% if f.vars.eccube_form_options.form_theme %}
+                                    {% form_theme f f.vars.eccube_form_options.form_theme %}
+                                    {{ form_row(f) }}
+                                {% else %}
+                                    <div class="row mb-2">
+                                        <div class="col-2"><span>{{ f.vars.label|trans }}</span></div>
+                                        <div class="col-10">
+                                            {{ form_widget(f) }}
+                                            {{ form_errors(f) }}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="c-conversionArea" id="aside_column">
+            <div class="c-conversionArea__container">
+                <div class="row justify-content-between align-items-center">
+                    <div class="col-6">
+                        <div class="c-conversionArea__leftBlockItem">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div id="ex-conversion-action" class="row align-items-center justify-content-end">
+                            <div class="col-auto">
+                                <button class="btn btn-ec-conversion px-5" type="submit">{{ 'admin.common.registration'|trans }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- HTMLメールを確認するモーダル -->
+    <div class="modal fade" id="htmlPreviewModal" tabindex="-1" role="dialog" aria-labelledby="htmlPreviewModal" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-bold">{{ 'admin.setting.shop.mail.preview'|trans }}</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="bg-light p-4 bg-ec-formGray" id="viewEmail" style="word-wrap: break-word; word-break:break-all">
+                        
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ec-sub" type="button" data-dismiss="modal">{{ 'admin.common.close'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
