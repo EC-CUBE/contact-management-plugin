@@ -1,0 +1,22 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+<script>
+    $(function () {
+        $('#reply_url').appendTo($('#detail_box__tpl_data'));
+    });
+</script>
+
+<div id="reply_url" class="mt-1">
+    <p>
+        {{ 'admin.order.mail_reply_url_request'|trans }}<br>
+        {{ 'admin.order.mail_reply_url_description'|trans }}<br>
+        {{ 'admin.contact.function_reply_url'|trans }}
+    </p>
+</div>

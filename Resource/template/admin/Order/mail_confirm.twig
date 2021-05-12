@@ -1,0 +1,33 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% block javascript %}
+    <script>
+        $(function () {
+            $('#reply_url').appendTo($('#order-mail-form'));
+        });
+    </script>
+{% endblock javascript %}
+</head>
+
+{% block main %}
+    <div id="reply_url" class="card rounded border-0 mb-4">
+        <div  class="row">
+            <div class="col-3">
+            </div>
+            <div class="col">
+                <p>
+                    {{ 'admin.order.mail_reply_url_request'|trans }}<br>
+                    {{ 'admin.order.mail_reply_url_description'|trans }}<br>
+                    {{ 'admin.contact.function_reply_url'|trans }}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
