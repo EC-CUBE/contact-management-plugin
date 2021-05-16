@@ -59,7 +59,6 @@ class MailService
      * @param EntityManagerInterface $entityManager
      * @param BaseInfoRepository $baseInfoRepository
      * @param EccubeConfig $eccubeConfig
-     * @throws \Exception
      */
     public function __construct(
         \Swift_Mailer $mailer,

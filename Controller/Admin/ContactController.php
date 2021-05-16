@@ -125,7 +125,6 @@ class ContactController extends AbstractController
      * @param MemberRepository $memberRepository
      * @param MailService $mailService
      * @param ContactCommentImageRepository $contactCommentImageRepository
-     * @throws \Exception
      */
     public function __construct(
         BaseInfoRepository $baseInfoRepository,
