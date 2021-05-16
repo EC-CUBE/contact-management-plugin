@@ -114,24 +114,4 @@
             </div>
         </div>
     </form>
-
-    <!-- HTMLメールを確認するモーダル -->
-    <div class="modal fade" id="htmlPreviewModal" tabindex="-1" role="dialog" aria-labelledby="htmlPreviewModal" aria-hidden="true" data-keyboard="false" data-backdrop="static">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title font-weight-bold">{{ 'admin.setting.shop.mail.preview'|trans }}</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                </div>
-                <div class="modal-body">
-                    <div class="bg-light p-4 bg-ec-formGray" id="viewEmail" style="word-wrap: break-word; word-break:break-all">
-                        
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-ec-sub" type="button" data-dismiss="modal">{{ 'admin.common.close'|trans }}</button>
-                </div>
-            </div>
-        </div>
-    </div>
 {% endblock %}
