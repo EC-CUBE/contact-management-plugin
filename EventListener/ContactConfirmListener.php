@@ -41,7 +41,7 @@ class ContactConfirmListener implements EventSubscriberInterface
     /**
      * @var Twig_Environment
      */
-    private $twig;
+    protected $twig;
 
     /**
      * ContactConfirmListener constructor.

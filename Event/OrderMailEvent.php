@@ -65,7 +65,7 @@ class OrderMailEvent implements EventSubscriberInterface
     /**
      * @var Twig_Environment
      */
-    private $twig;
+    protected $twig;
 
     /**
      * @var MailService
@@ -75,7 +75,7 @@ class OrderMailEvent implements EventSubscriberInterface
     /**
      * @var ContainerInterface
      */
-    private $container;
+    protected $container;
 
 
     /**

@@ -103,7 +103,7 @@ class ContactController extends AbstractController
     /**
      * @var CustomerRepository
      */
-    private $customerRepository;
+    protected $customerRepository;
 
     /**
      * @var ContactCommentImageRepository

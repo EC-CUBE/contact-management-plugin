@@ -23,12 +23,12 @@ class OrderMailConfirmListener implements EventSubscriberInterface
     /**
      * @var Context
      */
-    private $requestContext;
+    protected $requestContext;
 
     /**
      * @var Twig_Environment
      */
-    private $twig;
+    protected $twig;
 
     /**
      * @var FormFactoryInterface
