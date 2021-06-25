@@ -147,7 +147,7 @@ class OrderMailEvent implements EventSubscriberInterface
         $Contact->setName02($Order->getName02());
         $Contact->setKana01($Order->getKana01());
         $Contact->setKana02($Order->getKana02());
-        $Contact->setKana02($Order->getPostalCode());
+        $Contact->setPostalCode($Order->getPostalCode());
         $Contact->setPref($Order->getPref());
         $Contact->setAddr01($Order->getAddr01());
         $Contact->setAddr02($Order->getAddr02());
