@@ -1,0 +1,291 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="{{ asset('assets/css/fileupload/jquery.fileupload.css', 'admin') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/fileupload/jquery.fileupload-ui.css', 'admin') }}">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+
+    <style>
+        .imgUpBox--main {
+            display: -webkit-flex;
+            display: -moz-flex;
+            display: -ms-flex;
+            display: -o-flex;
+            display: flex;
+            align-items: center; }
+        .imgUpBox--main > * {
+            margin-right: 10px !important;
+            margin-left: 0 !important; }
+        .imgUpBox--main > *:last-child {
+            margin-right: 0 !important; }
+        .imgUpBox--main .uploaded {
+            align-items: center;
+            display: none; }
+        .imgUpBox--main .uploaded > * {
+            margin-right: 10px !important;
+            margin-left: 0 !important; }
+        .imgUpBox--main .uploaded > *:last-child {
+            margin-right: 0 !important; }
+        .imgUpBox--main .uploaded:last-child {
+            margin-right: 0 !important; }
+        .imgUpBox--main .uploaded.show {
+            display: -webkit-flex;
+            display: -moz-flex;
+            display: -ms-flex;
+            display: -o-flex;
+            display: flex; }
+        .imgUpBox--main--bt {
+            position: relative;
+            font-size: 80%;
+            background-color: #333;
+            padding: 0px 10px;
+            color: #fff;
+            text-align: center;
+            transition: all .3s ease 0s;
+            -moz-transition: all .3s ease 0s;
+            -webkit-transition: all .3s ease 0s; }
+        .imgUpBox--main--bt:hover {
+            text-decoration: none; }
+        .imgUpBox--main--bt:hover {
+            opacity: .7;
+            text-decoration: none; }
+        .imgUpBox--main input[type="file"] {
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            opacity: 0; }
+        .imgUpBox--thumbnail {
+            width: 170px; }
+        .imgUpBox--thumbnail img {
+            margin-top: 5px;
+            margin-bottom: 10px;}
+
+        .ec-inlineBtn {
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 3px 6px;}
+
+        .imgUpBox--main--name {
+            display: inline-block;
+        }
+    </style>
+{% endblock stylesheet %}
+{% block javascript %}
+    <script src="{{ asset('assets/js/vendor/fileupload/vendor/jquery.ui.widget.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.iframe-transport.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload-process.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload-validate.js', 'admin') }}"></script>
+    <script>
+        $(function () {
+            $('#contact_purpose').insertAfter('dl:nth-of-type(5)');
+            $('#contact_image').appendTo('div.ec-borderedDefs');
+
+            var imgTagTemplate = '<img src="\__path__\">';
+
+            {% if form.ContactComment.image_name_1.vars.value is not empty %}
+                var path = "{{ url('admin_contact_comment_get_image') }}?file_name=" + "{{ form.ContactComment.image_name_1.vars.value }}" ;
+                var img = $(imgTagTemplate.replace(/__path__/g, path));
+                $('#name_contact_comment_1').replaceWith('<div class="imgUpBox--main--name" id="name_contact_comment_1"></div>');
+                $('#name_contact_comment_1').append('{{ form.ContactComment.image_name_1.vars.value }}');
+                $('#thumb_contact_comment_1').append(img);
+            {% endif %}
+
+            {% if form.ContactComment.image_name_2.vars.value is not empty %}
+                var path = "{{ url('admin_contact_comment_get_image') }}?file_name=" + "{{ form.ContactComment.image_name_2.vars.value }}" ;
+                var img = $(imgTagTemplate.replace(/__path__/g, path));
+                $('#name_contact_comment_2').replaceWith('<div class="imgUpBox--main--name" id="name_contact_comment_2"></div>');
+                $('#name_contact_comment_2').append('{{ form.ContactComment.image_name_2.vars.value }}');
+                $('#thumb_contact_comment_2').append(img);
+            {% endif %}
+
+            var proto_del = '{{ form_widget(form.ContactComment.delete_images.vars.prototype) }}';
+            {% for delete_image in form.ContactComment.delete_images %}
+                $("#contact_image").append('{{ form_widget(delete_image) }}');
+            {% endfor %}
+
+            $('#{{ form.ContactComment.image_file_upload_1.vars.id }}').fileupload(getUploadProcess(
+                'contact_comment_1',
+                '{{ form.ContactComment.image_name_1.vars.id }}',
+            ));
+
+            $('#{{ form.ContactComment.image_file_upload_2.vars.id }}').fileupload(getUploadProcess(
+                'contact_comment_2',
+                '{{ form.ContactComment.image_name_2.vars.id }}',
+            ));
+
+            var count_del = 0;
+
+            $(document).ready(function(){
+
+                checkVisibleDeleteButton();
+
+                $('#delete_contact_comment_1').on('click', function() {
+                    var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+                    $new_delete_image.val($('#' + '{{ form.ContactComment.image_name_1.vars.id }}').val());
+                    $('#contact_image').append($new_delete_image);
+
+                    $('#' + '{{ form.ContactComment.image_name_1.vars.id }}').val('');
+                    $('#thumb_contact_comment_1').replaceWith('<div class="imgUpBox--thumbnail" id="thumb_contact_comment_1" ></div>');
+                    $('#name_contact_comment_1').replaceWith('<div class="imgUpBox--main--name" id="name_contact_comment_1"></div>');
+                    $('#delete_contact_comment_1').hide();
+                });
+
+                $('#delete_contact_comment_2').on('click', function() {
+                    var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+                    $new_delete_image.val($('#' + '{{ form.ContactComment.image_name_2.vars.id }}').val())
+                    $('#contact_image').append($new_delete_image);
+
+                    $('#' + '{{ form.ContactComment.image_name_2.vars.id }}').val('');
+                    $('#thumb_contact_comment_2').replaceWith('<div class="imgUpBox--thumbnail" id="thumb_contact_comment_2" ></div>');
+                    $('#name_contact_comment_2').replaceWith('<div class="imgUpBox--main--name" id="name_contact_comment_2"></div>');
+                    $('#delete_contact_comment_2').hide();
+                });
+            });
+
+            function getUploadProcess(key, valueId) {
+                return {
+                    url: "{{ url('front_contact_image_add') }}",
+                    type: "post",
+                    sequentialUploads: true,
+                    dataType: 'json',
+                    singleFileUploads: true,
+                    add: function (e, data) {
+                        // Ignore drag & drop
+                        if (e.delegatedEvent.type == 'drop') {
+                            return ;
+                        }
+
+                        if (data.files.length > 1) {
+                            alert("{{ 'front.contact.contact_image_length'|trans }}");
+                            return;
+                        } else {
+                            if (data.files[0].size > {{ eccube_config.eccube_contact_image_max_file_size }}) {
+                                alert("{{ 'front.contact.contact_image_size'|trans }}");
+                                return;
+                            }
+                            data.submit();
+                        }
+                    },
+                    done: function(e, data) {
+                        var file = data.result.file;
+                        var path = "{{ url('admin_contact_comment_get_image') }}?file_name=" + file ;
+                        var img = $(imgTagTemplate.replace(/__path__/g, path));
+
+                        $('#thumb_' + key).replaceWith('<div class="imgUpBox--thumbnail" id="thumb_' + key + '"></div>');
+                        $('#thumb_' + key).append(img);
+                        $('#name_' + key).replaceWith('<div class="imgUpBox--main--name" id="name_' + key + '"></div>');
+                        $('#name_' + key).append(file);
+                        if ($('#'+valueId).val() && $('#'+valueId).val().length > 0) {
+                            var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+                            $new_delete_image.val($('#'+valueId).val())
+                            $('#contact_image').append($new_delete_image);
+                            count_del++
+                        }
+                        $('#'+valueId).val(file);
+                        $('#delete_' + key).show();
+                    },
+                    fail: function(e, data) {
+                        alert("{{ 'admin.common.upload_error'|trans }}");
+                    },
+                    acceptFileTypes: /(\.|\/)(jpe?g|png)$/i,
+                    maxFileSize: {{ eccube_config.eccube_contact_image_max_file_size }},
+                    maxNumberOfFiles: 1,
+                    processalways: function(e, data) {
+                        if (data.files.error) {
+                            alert("{{ 'admin.common.upload_error'|trans }}");
+                        }
+                    }
+                }
+            }
+
+            function checkVisibleDeleteButton() {
+                {% if form.ContactComment.image_name_1.vars.value %}
+                    $("#delete_contact_comment_1").show();
+                {% else %}
+                    $("#delete_contact_comment_1").hide();
+                {% endif %}
+
+                {% if form.ContactComment.image_name_2.vars.value %}
+                    $("#delete_contact_comment_2").show();
+                {% else %}
+                    $("#delete_contact_comment_2").hide();
+                {% endif %}
+            }
+        });
+    </script>
+{% endblock javascript %}
+
+{% form_theme form.ContactPurpose 'ContactManagement/Resource/template/default/Form/custom_checkbox_theme.twig' %}
+
+{% block main %}
+    <div style="display:none;">
+        <dl id="contact_purpose">
+            <dt>
+                {{ form_label(form.ContactPurpose, 'front.contact.contact_purpose', { 'label_attr': { 'class': 'ec-label' }}) }}
+            </dt>
+            <dd>
+                <div class="ec-radio{{ has_errors(form.ContactPurpose) ? ' error' }}">
+                    {{ form_widget(form.ContactPurpose) }}
+                    {{ form_errors(form.ContactPurpose) }}
+                </div>
+            </dd>
+        </dl>
+        <dl id="contact_image">
+            <dt>
+                <strong>{{ 'front.contact.contact_image_file'|trans }}</strong><br>
+                <small>{{ 'front.contact.contact_image_file_description'|trans }}</small>
+            </dt>
+            <dd>
+                <div class="imgUpBox">
+                    <div class="imgUpBox--main">
+                        <label class="imgUpBox--main--bt">
+                            {{ form_widget(form.ContactComment.image_file_upload_1, { attr : { accept : 'image/*' } }) }}
+                            <strong>{{ 'front.contact.contact_select_file'|trans }}</strong>
+                            {{ form_widget(form.ContactComment.image_name_1) }}
+                        </label>
+                        <div class="uploaded show">
+                            <div class="imgUpBox--main--name" id="name_contact_comment_1">
+                            </div>
+                            <button type="button" id="delete_contact_comment_1" class="ec-inlineBtn">
+                                <span>{{ 'common.delete'|trans }}</span>
+                            </button>
+                        </div>
+                    </div>
+                    {{ form_errors(form.ContactComment.image_name_1) }}
+                    {{ form_errors(form.ContactComment.image_file_upload_1) }}
+                    <div class="imgUpBox--thumbnail" id="thumb_contact_comment_1"></div>
+                </div>
+                <div class="imgUpBox mt30 mt15sp">
+                    <div class="imgUpBox--main">
+                        <label class="imgUpBox--main--bt">
+                            {{ form_widget(form.ContactComment.image_file_upload_2, { attr : { accept : 'image/*' } }) }}
+                            <strong>{{ 'front.contact.contact_select_file'|trans }}</strong>
+                            {{ form_widget(form.ContactComment.image_name_2) }}
+                        </label>
+                        <div class="uploaded show">
+                            <div class="imgUpBox--main--name" id="name_contact_comment_2">
+                            </div>
+                            <button type="button" id="delete_contact_comment_2" class="ec-inlineBtn">
+                                <span>{{ 'common.delete'|trans }}</span>
+                            </button>
+                        </div>
+                    </div>
+                    {{ form_errors(form.ContactComment.image_name_2) }}
+                    {{ form_errors(form.ContactComment.image_file_upload_2) }}
+                    <div class="imgUpBox--thumbnail" id="thumb_contact_comment_2"></div>
+                </div>
+            </dd>
+        </dl>
+    </div>
+{% endblock %}

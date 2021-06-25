@@ -1,0 +1,85 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <style>
+        .imgUpBox--thumbnail {
+            width: 170px; }
+        .imgUpBox--thumbnail img {
+            margin-top: 10px; }
+    </style>
+{% endblock stylesheet %}
+{% block javascript %}
+    <script>
+        $(function () {
+            $('#contact_purpose').insertAfter('dl:nth-of-type(5)');
+            $('#contact_image').appendTo('div.ec-borderedDefs');
+        });
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    <div style="display:none;">
+        <dl id="contact_purpose">
+            <dt>
+                {{ form_label(form.ContactPurpose, 'front.contact.contact_purpose', { 'label_attr': { 'class': 'ec-label' }}) }}
+            </dt>
+            <dd>
+                {{ form.ContactPurpose.vars.data }}
+                {{ form_widget(form.ContactPurpose, { type : 'hidden' }) }}
+            </dd>
+        </dl>
+        <dl id="contact_image">
+            <dt>
+                <strong>{{ 'front.contact.contact_image_file'|trans }}</strong><br>
+                <small>{{ 'front.contact.contact_image_file_description'|trans }}</small>
+            </dt>
+            <dd>
+                {% set imageContactComment1 = form.ContactComment.image_name_1.vars.value ? form.ContactComment.image_name_1.vars.value : null %}
+                {% set urlImageContactComment1 = null %}
+
+                {% if imageContactComment1 %}
+                    {% set urlImageContactComment1 = url('admin_contact_comment_get_image') ~ '?file_name=' ~ imageContactComment1 %}
+                {% endif %}
+
+                {% if imageContactComment1 %}
+                    <div>
+                        <p>
+                            {{ imageContactComment1 }}
+                        </p>
+                        <div class="imgUpBox--thumbnail">
+                            <img src="{{ urlImageContactComment1 }}">
+                        </div>
+                    </div>
+                    {{ form_widget(form.ContactComment.image_name_1, { type : 'hidden' }) }}
+                {% endif %}
+
+                {% set imageContactComment2 = form.ContactComment.image_name_2.vars.value ? form.ContactComment.image_name_2.vars.value : null %}
+                {% set urlImageContactComment2 = null %}
+
+                {% if imageContactComment2 %}
+                    {% set urlImageContactComment2 = url('admin_contact_comment_get_image') ~ '?file_name=' ~ imageContactComment2 %}
+                {% endif %}
+
+                {% if imageContactComment2 %}
+                    <div>
+                        <p>
+                            {{ imageContactComment2 }}
+                        </p>
+                        <div class="imgUpBox--thumbnail">
+                            <img src="{{ urlImageContactComment2 }}">
+                        </div>
+                    </div>
+                    {{ form_widget(form.ContactComment.image_name_2, { type : 'hidden' }) }}
+                {% endif %}
+            </dd>
+        </dl>
+    </div>
+{% endblock %}

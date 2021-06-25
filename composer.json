@@ -1,0 +1,12 @@
+{
+  "name": "ec-cube/ContactManagement",
+  "version": "1.0.3",
+  "description": "カスタマーサポートPROプラグイン(4.0系)",
+  "type": "eccube-plugin",
+  "require": {
+    "ec-cube/plugin-installer": "~0.0.7"
+  },
+  "extra": {
+    "code": "ContactManagement"
+  }
+}

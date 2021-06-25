@@ -1,0 +1,4 @@
+/contact_comment/save_image/*
+!/contact_comment/save_image/.gitkeep
+/contact_comment/temp_image/*
+!/contact_comment/temp_image/.gitkeep

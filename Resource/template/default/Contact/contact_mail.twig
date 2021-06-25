@@ -1,0 +1,37 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% autoescape false %}
+※本メールは自動配信メールです。
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+　※本メールは、
+　{{ BaseInfo.shop_name }}よりお問い合わせされた方に
+　お送りしています。
+　もしお心当たりが無い場合は、
+　その旨 {# 問い合わせ受付メール #}{{ BaseInfo.email02 }} まで
+　ご連絡いただければ幸いです。
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+{{ Contact.name01 }} {{ Contact.name02 }} 様
+
+以下のお問い合わせを受付致しました。
+確認次第ご連絡いたしますので、少々お待ちください。
+
+お名前：{{ Contact.name01 }} {{ Contact.name02 }}{% if Contact.kana01 or Contact.kana02 %} ({{ Contact.kana01 }} {{ Contact.kana02 }}){% endif %} 様
+郵便番号：{% if Contact.postal_code %}〒{{ Contact.postal_code }}{% endif %}
+
+住所：{% if Contact.pref.name is defined %} {{ Contact.pref.name }}{% endif %}{{ Contact.addr01 }}{{ Contact.addr02 }}
+電話番号：{{ Contact.phone_number }}
+メールアドレス：{{ Contact.email }}
+お問い合わせ目的：{{ Contact.ContactPurpose ? Contact.ContactPurpose.name }}
+お問い合わせ内容：
+
+{{ ContactComment }}
+{% endautoescape  %}

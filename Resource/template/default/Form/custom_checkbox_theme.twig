@@ -1,0 +1,10 @@
+{%- block radio_widget -%}
+    {% if type is defined and type == 'hidden' %}
+        {{ block('form_widget_simple') }}
+    {% else %}
+        <label for="{{ id }}">
+            <input type="radio" id="{{ id }}" name="{{ full_name }}" value="{{ value }}" {% if checked %}checked{% endif %}>
+            <span>{{ label is not same as(false) ? (translation_domain is same as(false) ? label : label|trans({}, translation_domain)) }}</span>
+        </label>
+    {% endif %}
+{%- endblock radio_widget -%}

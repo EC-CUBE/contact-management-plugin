@@ -1,0 +1,394 @@
+{#
+ This file is part of the ContactManagement Plugin
+
+ Copyright (C) 2020 Diezon.
+
+ For the full copyright and license information, please view the LICENSE
+ file that was distributed with this source code.
+#}
+
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['contact', 'contact_list'] %}
+
+{% block title %}{{ 'admin.contact.contact_list'|trans }}{% endblock %}
+{% block sub_title %}{{ 'admin.contact.contact_management'|trans }}{% endblock %}
+
+{% form_theme searchForm '@admin/Form/bootstrap_4_layout.html.twig' %}
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="{{ asset('assets/css/tempusdominus-bootstrap-4.min.css', 'admin') }}">
+    <style type="text/css">
+        .datepicker-days th.dow:first-child,
+        .datepicker-days td:first-child {
+            color: #f00;
+        }
+        .datepicker-days th.dow:last-child,
+        .datepicker-days td:last-child {
+            color: #00f;
+        }
+        .comment {
+            overflow: hidden;
+        }
+        .comment p {
+            margin: 0;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+        .member-comment {
+            background-color: #DCF4BD;
+        }
+        .memo-comment {
+            background-color: #bdf4f3;
+        }
+        .lowPriority {
+            background-color: #ffdbb9;
+        }
+    </style>
+{% endblock stylesheet %}
+
+{% block javascript %}
+    <script>
+        $(function() {
+            if ($('[type="date"]').prop('type') !== 'date') {
+                // input type属性でdateが利用できるかどうか(カレンダー表示できないブラウザ対応)
+                $.when(
+                    $.getScript("{{ asset('assets/js/vendor/moment.min.js', 'admin') }}"),
+                    $.getScript("{{ asset('assets/js/vendor/moment-with-locales.min.js', 'admin') }}"),
+                    $.getScript("{{ asset('assets/js/vendor/tempusdominus-bootstrap-4.min.js', 'admin') }}")
+                ).done(function() {
+                    $('input[id$=_date_start]').datetimepicker({
+                        locale: '{{ eccube_config.locale }}',
+                        format: 'YYYY-MM-DD',
+                        useCurrent: false,
+                        buttons: {
+                            showToday: true,
+                            showClose: true
+                        }
+                    });
+                    $('input[id$=_date_end]').datetimepicker({
+                        locale: '{{ eccube_config.locale }}',
+                        format: 'YYYY-MM-DD',
+                        useCurrent: false,
+                        buttons: {
+                            showToday: true,
+                            showClose: true
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    <div class="c-outsideBlock">
+        <form id='search_form' method="post" action="{{ url('admin_contact') }}">
+            <div class="c-outsideBlock__contents">
+                <div class="row">
+                    <div class="col-12">
+                        {{ form_widget(searchForm._token) }}
+                        <div>
+                            <label class="col-form-label" data-tooltip="true" data-placement="top" title="{{ 'tooltip.contact.multi_search_label'|trans }}">{{ 'admin.contact.contact_multi_search_label'|trans }}<i class="fa fa-question-circle fa-lg ml-1"></i></label>
+                            {{ form_widget(searchForm.multi_search) }}
+                            {{ form_errors(searchForm.multi_search) }}
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-12">
+                                <label class="col-form-label"  data-tooltip="true" data-placement="top" title="{{ 'tooltip.contact.contact_search_status'|trans }}">{{ 'admin.contact.contact_status'|trans }}<i class="fa fa-question-circle fa-lg ml-1"></i></label>
+                                <div id="admin_search_contact_status">
+                                    {% set statusForm = searchForm.status %}
+                                    <!-- 各対応状況の件数を表示する -->
+                                    {% for status_id, child in statusForm.children %}
+                                        <div class="form-check form-check-inline">
+                                            <input type="checkbox"
+                                                   id="{{ child.vars.id }}"
+                                                   name="{{ child.vars.full_name }}"
+                                                   class="form-check-input"
+                                                   value="{{ child.vars.value }}"{{ child.vars.checked ? ' checked="checked"' }}>
+                                            <label class="form-check-label" for="{{ child.vars.id }}">{{ child.vars.label }}</label>
+                                            (<a href="{{ url('admin_contact', { 'contact_status_id': status_id }) }}">{{ statusForm.vars.contact_count[status_id].count }}</a>)
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {{ form_errors(searchForm.status) }}
+                            </div>
+                        </div>
+                        <div class="form-row mb-3">
+                            <div class="col-12">
+                                <p class="col-form-label">{{ 'admin.contact.contact_replied'|trans }}</p>
+                                {{ form_widget(searchForm.replied,  { 'label_attr': { 'class': 'checkbox-inline' }}) }}
+                                {{ form_errors(searchForm.replied) }}
+                            </div>
+                        </div>
+                        <div class="d-inline-block mb-3" data-toggle="collapse" href="#searchDetail"
+                             aria-expanded="false" aria-controls="searchDetail"><a><i
+                                        class="fa fa-plus-square-o font-weight-bold mr-1"></i><span
+                                        class="font-weight-bold">{{ 'admin.common.search_detail'|trans }}</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="c-subContents collapse ec-collapse{{ has_errors ? ' show' }}" id="searchDetail">
+                <div class="row">
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_name'|trans }}</label>
+                        {{ form_widget(searchForm.name) }}
+                        {{ form_errors(searchForm.name) }}
+                    </div>
+                    <div class="col">
+                        <div class="form-row">
+                            <div class="col-12">
+                                <p class="col-form-label">{{ 'admin.contact.charge_member'|trans }}</p>
+                                {{ form_widget(searchForm.charge_member) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_kana'|trans }}</label>
+                        {{ form_widget(searchForm.kana) }}
+                        {{ form_errors(searchForm.kana) }}
+                    </div>
+                    <div class="col">
+                        <div class="form-row">
+                            <div class="col-12">
+                                <p class="col-form-label">{{ 'admin.contact.customer'|trans }}</p>
+                                {{ form_widget(searchForm.customer,  { 'label_attr': { 'class': 'checkbox-inline' }}) }}
+                                {{ form_errors(searchForm.customer) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_email'|trans }}</label>
+                        {{ form_widget(searchForm.email) }}
+                        {{ form_errors(searchForm.email) }}
+                    </div>
+                    <div class="col">
+                        <div class="form-row">
+                            <div class="col-12">
+                                <p class="col-form-label">{{ 'admin.contact.contact_purpose'|trans }}</p>
+                                {{ form_widget(searchForm.contact_purpose,  { 'label_attr': { 'class': 'checkbox-inline' }}) }}
+                                {{ form_errors(searchForm.contact_purpose) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_phone_number'|trans }}</label>
+                        {{ form_widget(searchForm.phone_number) }}
+                        {{ form_errors(searchForm.phone_number) }}
+                    </div>
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_date'|trans }}</label>
+                        <div class="form-row align-items-center">
+                            <div class="col">
+                                {{ form_widget(searchForm.create_date_start) }}
+                                {{ form_errors(searchForm.create_date_start) }}
+                            </div>
+                            <div class="col-auto text-center">{{ 'admin.common.separator__range'|trans }}</div>
+                            <div class="col">
+                                {{ form_widget(searchForm.create_date_end) }}
+                                {{ form_errors(searchForm.create_date_end) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_id'|trans }}</label>
+                        {{ form_widget(searchForm.contact_id) }}
+                        {{ form_errors(searchForm.contact_id) }}
+                    </div>
+                    <div class="col">
+                        <label class="col-form-label">{{ 'admin.contact.contact_comment_date'|trans }}</label>
+                        <div class="form-row align-items-center">
+                            <div class="col">
+                                {{ form_widget(searchForm.comment_date_start) }}
+                                {{ form_errors(searchForm.comment_date_start) }}
+                            </div>
+                            <div class="col-auto text-center">{{ 'admin.common.separator__range'|trans }}</div>
+                            <div class="col">
+                                {{ form_widget(searchForm.comment_date_end) }}
+                                {{ form_errors(searchForm.comment_date_end) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <label class="col-form-label">{{ 'admin.contact.contact_comment_id'|trans }}</label>
+                        {{ form_widget(searchForm.comment_id) }}
+                        {{ form_errors(searchForm.comment_id) }}
+                    </div>
+                </div>
+                {# エンティティ拡張の自動出力 #}
+                {% for f in searchForm if f.vars.eccube_form_options.auto_render %}
+                    {# TODO 1項目1行になるのを改善 #}
+                    <div class="row mb-2">
+                        {% if f.vars.eccube_form_options.form_theme %}
+                            {% form_theme f f.vars.eccube_form_options.form_theme %}
+                            {{ form_row(f) }}
+                        {% else %}
+                            <div class="col">
+                                <div class="mb-3">
+                                    <label>{{ f.vars.label|trans }}</label>
+                                    {{ form_widget(f) }}
+                                    {{ form_errors(f) }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="c-outsideBlock__contents mb-5">
+                <button class="btn btn-ec-conversion px-5" type="submit">{{ 'admin.common.search'|trans }}</button>
+                {% if pagination %}
+                    <span class="font-weight-bold ml-2">{{ 'admin.common.search_result'|trans({"%count%":pagination.totalItemCount})|raw }}</span>
+                {% endif %}
+            </div>
+            <div class="c-outsideBlock__contents mb-5">
+                {{ include('@admin/search_items.twig', { 'form': searchForm }, ignore_missing = true) }}
+            </div>
+        </form>
+    </div>
+
+    <div class="c-contentsArea__cols">
+        <div class="c-contentsArea__primaryCol">
+            <div class="c-primaryCol">
+                {% if pagination and pagination.totalItemCount %}
+                    <div class="row justify-content-between mb-2">
+                        <div class="col-12 text-right">
+                            <div class="d-inline-block mr-2">
+                                <select class="custom-select" onchange="location = this.value;">
+                                    {% for pageMax in pageMaxis %}
+                                        <option {% if pageMax.name == page_count %}selected=""{% endif %} value="{{ path('admin_contact_page', {'page_no': 1, 'page_count': pageMax.name}) }}">{{ 'admin.common.count'|trans({ '%count%': pageMax.name }) }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card rounded border-0 mb-4 d-block">
+                        <div class="card-body p-0">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="border-top-0 pt-2 pb-2" style="min-width: 70px">{{ 'admin.contact.contact_id'|trans }}</th>
+                                        <th class="border-top-0 pt-2 pb-2" style="min-width: 135px">{{ 'admin.contact.contact_name'|trans }}<br>
+                                            {{ 'admin.contact.contact_last_comment_datetime'|trans }}
+                                        </th>
+                                        <th class="border-top-0 pt-2 pb-2">{{ 'admin.contact.contact_information'|trans }}</th>
+                                        <th class="border-top-0 pt-2 pb-2 text-center">{{ 'admin.contact.contact_status'|trans }}</th>
+                                        <th class="border-top-0 pt-2 pb-2" style="min-width: 240px">{{ 'admin.contact.shop_memos_inquiries'|trans }}</th>
+                                        <th class="border-top-0 pt-2 pb-2" style="min-width: 90px">{{ 'admin.contact.contact_charge_member'|trans }}</th>
+                                        <th class="border-top-0 pt-2 pb-2 pr-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for Contact in pagination %}
+                                    {% set LastCommentDate = getLastCommentDate(Contact) %}
+                                    <tr id="ex-contact-{{ Contact.id }}" class="{% if Contact.replied is same as(false) and Contact.Contactstatus not in lowPriority %} lowPriority {% endif %}">
+                                        <td class="align-middle">
+                                            <a href="{{ url('admin_contact_contact_edit', { id : Contact.id }) }}">
+                                                {{  Contact.id }}
+                                            </a>
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ Contact.name01 ~ Contact.name02 }}
+                                            {% if Contact.Customer %}
+                                                (<a href="{{ url('admin_customer_edit', { id : Contact.Customer.id }) }}"> {{ Contact.Customer.id }} </a>)
+                                            {% endif %}<br>
+                                            {{ LastCommentDate|date_min }}
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ Contact.phone_number}}<br>
+                                            {{ Contact.email}}
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <span class="badge badge-ec-blue" style="background-color: #fff; color: {{ Contact.ContactStatusColor }}; border-color: {{ Contact.ContactStatusColor }}">{{ Contact.ContactStatus }}</span><br>
+                                            {% if Contact.replied %}
+                                                <span class="badge badge-ec-blue mt-2" style="background-color: #fff; color: #999999; border-color: #999999">{{ 'admin.contact.replied'|trans }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle comment">
+                                            <p class="mb-0"> <span>{{ 'admin.contact.shop_title'|trans }}</span>{% if Contact.note_title %}{{ Contact.note_title }} {% endif %}</p>
+                                            <p class="mb-0"> <span>{{ 'admin.contact.shop_memo'|trans }}</span>{% if Contact.note %}{{ Contact.note }} {% endif %}</p>
+                                        </td>
+                                        <td class="align-middle">
+                                            {% if Contact.ChargeMember %}
+                                                {{ Contact.ChargeMember }}
+                                            {% else %}
+                                                {{ 'admin.contact.not_set'|trans }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="col-4 text-right">
+                                                <a data-toggle="collapse" href="#contactInformation{{ Contact.id }}" aria-expanded="false"
+                                                    aria-controls="contactInformation">
+                                                    <i class="fa fa-angle-down fa-lg" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% for ContactComment in Contact.ContactComments %}
+                                        {% if ContactComment.isSend or ContactComment.isMemo %}
+                                            <tr class="collapse ec-cardCollapse" id="contactInformation{{ Contact.id }}">
+                                                <td class="border-top-0"></td>
+                                                <td class="align-middle {% if ContactComment.isMemo %}memo-comment{% elseif ContactComment.Member %}member-comment{% endif %}">
+                                                    <a href="{{ url('admin_contact_contact_edit', { id : Contact.id }) }}#comment-{{ ContactComment.id }}">
+                                                        {{ ContactComment.id }} <br>
+                                                        {{ ContactComment.update_date|date_min }}
+                                                    </a>
+                                                </td>
+                                                <td colspan="3" class="align-middle comment {% if ContactComment.isMemo %}memo-comment{% elseif ContactComment.Member %}member-comment{% endif %}">
+                                                    <p>【{{ 'admin.contact.send_member'|trans }}:
+                                                        {% if ContactComment.Member %}
+                                                            <span>{{ ContactComment.Member }}</span>
+                                                        {% else %}
+                                                            <span>{{ Contact.name01 ~ Contact.name02 }} 様</span>
+                                                        {% endif %}
+                                                        】
+                                                    <span>{{ ContactComment.comment }}</span></p>
+                                                </td>
+                                                <td class="border-top-0"></td>
+                                                <td class="border-top-0"></td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row justify-content-md-center mb-4">
+                            {% if pagination.totalItemCount > 0 %}
+                                {% include "@admin/pager.twig" with { 'pages' : pagination.paginationData, 'routes' : 'admin_contact_page' } %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elseif has_errors %}
+                    <div class="card rounded border-0">
+                        <div class="card-body p-4">
+                            <div class="text-center text-muted mb-4 h5">{{ 'admin.common.search_invalid_condition'|trans }}</div>
+                            <div class="text-center text-muted">{{ 'admin.common.search_try_change_condition'|trans }}</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card rounded border-0">
+                        <div class="card-body p-4">
+                            <div class="text-center text-muted mb-4 h5">{{ 'admin.common.search_no_result'|trans }}</div>
+                            <div class="text-center text-muted">{{ 'admin.common.search_try_change_condition'|trans }}</div>
+                            <div class="text-center text-muted">{{ 'admin.common.search_try_advanced_search'|trans }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
